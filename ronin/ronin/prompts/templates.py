@@ -10,6 +10,7 @@ from ronin.typing_mixin import ChatMessage
 class BaseChatPromptTemplate(ABC):
     prompt: PromptTemplate
     role_field_name: str = "role"
+    message_field_name: str = "content"
 
     @classmethod
     def from_str(cls, prompt: str, **kwargs) -> "BaseChatPromptTemplate":
@@ -22,7 +23,7 @@ class BaseChatPromptTemplate(ABC):
     def _fill(self, role: str, *args, **kwargs) -> ChatMessage:
         return {
             self.role_field_name: role,
-            "message": list(self.prompt.fill(*args, **kwargs))[0],
+            self.message_field_name: list(self.prompt.fill(*args, **kwargs))[0],
         }
 
 
