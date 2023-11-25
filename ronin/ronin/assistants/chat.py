@@ -14,7 +14,9 @@ from ronin.typing_mixin import ChatMessage
 class ChatAssistant:
     chat_node: PromptNode
     chat_system_prompt: SystemPromptTemplate
-    chat_user_prompt: UserMessageTemplate
+    chat_user_prompt: UserMessageTemplate = attrs.field(
+        factory=UserMessageTemplate.with_dummy_template, repr=False
+    )
     chat_assistant_prompt: AssistantMessageTemplate = attrs.field(
         factory=AssistantMessageTemplate.with_dummy_template, repr=False
     )
@@ -64,7 +66,6 @@ class ChatAssistant:
         )
 
         self.history.append(user_message)
-
         messages = [
             self.build_chat_system_message(**system_message_kwargs)
         ] + self.history
