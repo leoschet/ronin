@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "ronin"
+version = "0.1.0"
+description = "Rogue assistant that follows its own path."
+authors = ["Leonardo Schettini <leonardo.schettini@crayon.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+click = "^8.1.7"
+farm-haystack = "^1.22.1"
+python-dotenv = "^1.0.0"
+pydantic = "<2"
+attrs = "^23.1.0"
+
+[tool.poetry.scripts]
+ronin = 'ronin.cli.main:ronin'
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.6"
+ipykernel = "^6.26.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
