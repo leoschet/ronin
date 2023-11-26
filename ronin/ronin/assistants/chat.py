@@ -1,5 +1,6 @@
 import attrs
 from haystack.nodes import PromptNode
+from loguru import logger
 
 from ronin.prompts.defaults import DEFAULT_PROACTIVE_MESSAGE_TRIGGER
 from ronin.prompts.templates import (
@@ -10,6 +11,8 @@ from ronin.prompts.templates import (
 from ronin.typing_mixin import ChatMessage
 
 
+# XXX: It would be nice to have this be a Haystack Node.
+# https://github.com/deepset-ai/haystack/issues/5442
 @attrs.define(kw_only=True)
 class ChatAssistant:
     chat_node: PromptNode
@@ -90,6 +93,7 @@ class ProactiveChatAssistant(ChatAssistant):
 
     def proactively_send_message(self, **kwargs) -> ChatMessage:
         """Proactively send a message to the user."""
+        logger.debug("Assistant is proactively sending a message.")
         messages = [
             self.build_chat_system_message(),
             self.proactive_message_trigger.fill(**kwargs),
