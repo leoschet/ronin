@@ -3,7 +3,7 @@ import functools
 import attrs
 from loguru import logger
 
-from ronin.assistants.chat import ProactiveChatAssistant
+from ronin.assistants.base import ProactiveChatAssistant
 from ronin.prompts.templates import (
     AssistantMessageTemplate,
     SystemPromptTemplate,
@@ -44,14 +44,8 @@ class ConversationDesigner(ProactiveChatAssistant):
         factory=AssistantMessageTemplate.with_dummy_template, repr=False
     )
 
+    priming_message: str | None = (
+        "In three sentences, what are the top 3 principles and concepts that "
+        "make a great virtual assistant?"
+    )
     auto_prime: bool = True
-
-    def prime(self):
-        logger.debug("Priming assistant to helpful state.")
-        prime_response = self.chat(
-            (
-                "In three sentences, what are the top 3 principles and concepts that "
-                "make a great virtual assistant?"
-            )
-        )
-        logger.debug(f"Prime response: {prime_response}")

@@ -4,7 +4,7 @@ import click
 from haystack.nodes import PromptModel, PromptNode
 from loguru import logger
 
-from ronin.assistants.chat import ChatAssistant, ProactiveChatAssistant
+from ronin.assistants.base import ChatAssistant, ProactiveChatAssistant
 from ronin.assistants.coach import ConversationDesigner
 from ronin.cli import coroutine
 from ronin.config import settings

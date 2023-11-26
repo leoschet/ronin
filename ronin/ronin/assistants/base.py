@@ -15,6 +15,31 @@ from ronin.typing_mixin import ChatMessage
 # https://github.com/deepset-ai/haystack/issues/5442
 @attrs.define(kw_only=True)
 class ChatAssistant:
+    """Base chat assistant class.
+
+    Attributes
+    ----------
+    chat_node : PromptNode
+        The PromptNode that the assistant uses to chat.
+    chat_system_prompt : SystemPromptTemplate
+        System's chat message template.
+    chat_user_prompt : UserMessageTemplate
+        User's chat message template.
+        By default, this is a dummy template that passes the message through.
+    chat_assistant_prompt : AssistantMessageTemplate
+        Assistant's chat message template.
+        By default, this is a dummy template that passes the message through.
+    chat_system_kwargs : dict, optional
+        Keyword arguments passed to the system's chat message template.
+    priming_message : str, optional
+        The message sent to the assistant to prime it to a certain state.
+    auto_prime : bool, optional
+        Whether to prime the assistant to a certain state when the assistant is
+        instantiated.
+    history : list[ChatMessage]
+        The chat history.
+    """
+
     chat_node: PromptNode
     chat_system_prompt: SystemPromptTemplate
     chat_user_prompt: UserMessageTemplate = attrs.field(
@@ -25,12 +50,14 @@ class ChatAssistant:
     )
 
     chat_system_kwargs: dict = attrs.field(factory=dict, repr=False)
+
+    priming_message: str | None = None
     auto_prime: bool = False
 
     history: list[ChatMessage] = attrs.field(factory=list, repr=False, init=False)
 
     def __attrs_post_init__(self):
-        if self.auto_prime:
+        if self.auto_prime and self.priming_message:
             self.prime()
 
     def build_chat_system_message(self, **kwargs) -> ChatMessage:
@@ -49,9 +76,18 @@ class ChatAssistant:
         params[self.chat_assistant_prompt.message_prompt_parameter] = message
         return self.chat_assistant_prompt.fill(**params)
 
-    def prime(self):
+    def prime(self) -> ChatMessage:
         """Prime the assistant to a certain state."""
-        return
+        logger.debug("Priming assistant to helpful state.")
+        messages = [
+            # XXX: Should priming happen with or without the system message?
+            self.build_chat_system_message(),
+            UserMessageTemplate.from_str(prompt=self.priming_message).fill(),
+        ]
+
+        prime_response = self._chat(messages=messages)
+        logger.debug(f"Prime response: {prime_response}")
+        return prime_response
 
     def chat(
         self,
@@ -87,7 +123,13 @@ class ChatAssistant:
 
 @attrs.define(kw_only=True)
 class ProactiveChatAssistant(ChatAssistant):
-    """A chat assistant that proactively sends messages to the user."""
+    """A chat assistant that proactively sends messages to the user.
+
+    Attributes
+    ----------
+    proactive_message_trigger : UserMessageTemplate
+        The message that triggers the assistant to proactively send a message.
+    """
 
     proactive_message_trigger: UserMessageTemplate = DEFAULT_PROACTIVE_MESSAGE_TRIGGER
 
