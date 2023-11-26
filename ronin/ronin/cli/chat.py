@@ -2,12 +2,14 @@ import json
 
 import click
 from haystack.nodes import PromptModel, PromptNode
-
-from ronin.assistants.chat import ChatAssistant
-from ronin.cli import coroutine
-from ronin.prompts.templates import SystemPromptTemplate
-from ronin.config import settings
 from loguru import logger
+
+from ronin.assistants.chat import ChatAssistant, ProactiveChatAssistant
+from ronin.assistants.coach import ConversationDesigner
+from ronin.cli import coroutine
+from ronin.config import settings
+from ronin.prompts.templates import SystemPromptTemplate
+
 
 @click.command(name="chat", help="Chat with the assistant.")
 @coroutine
@@ -15,13 +17,17 @@ from loguru import logger
     "--message",
     "-m",
     "first_message",
-    required=True,
-    help="Message to send to assistant.",
+    help="Initial message to send to assistant.",
 )
 @click.option(
     "--system-message",
     default="You are a helpful assistant.",
     help="System message to use. This overrides the existing system message.",
+)
+@click.option(
+    "--max-length",
+    default=100,
+    help="Maximum length of the response.",
 )
 @click.option(
     "--interactive",
@@ -39,6 +45,7 @@ async def chat(
     first_message: str,
     interactive: bool,
     system_message: str,
+    max_length: int,
     output_path: str,
 ):
     logger.info("Connecting to OpenAI.")
@@ -50,25 +57,34 @@ async def chat(
             "azure_base_url": settings.azure_openai_endpoint,
             "azure_deployment_name": settings.azure_openai_chatgpt_deployment,
         },
+        max_length=max_length,
     )
     openai_node = PromptNode(prompt_azure_openai)
 
     logger.info("Starting Assistant.")
-    assistant = ChatAssistant(
+    assistant = ConversationDesigner(
         chat_node=openai_node,
-        chat_system_prompt=SystemPromptTemplate.from_str(system_message)
-
+        # chat_system_prompt=SystemPromptTemplate.from_str(system_message)
     )
-    
+
+    if isinstance(assistant, ProactiveChatAssistant):
+        response = assistant.proactively_send_message()
+        print(f"Assistant:\n{response['content']}\n")
+
     logger.info("Initializing chat:")
     message = first_message
-    print(f"User:\n{message}\n")
+    if not message:
+        message = click.prompt("User", type=str)
+        print()
+    else:
+        print(f"User:\n{message}\n")
+
     while message != "exit":
         response = assistant.chat(message)
         print(f"Assistant:\n{response['content']}\n")
 
         if interactive:
-            message = click.prompt('User', type=str)
+            message = click.prompt("User", type=str)
             print()
         else:
             break
