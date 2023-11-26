@@ -1,8 +1,13 @@
 import attrs
 
-from ronin.assistants.base import ChatAssistant, ProactiveChatAssistant
+from ronin.assistants.base import (
+    AssistantRegister,
+    ChatAssistant,
+    ProactiveChatAssistant,
+)
 
 
+@AssistantRegister.register("resume-bio-writer")
 @attrs.define
 class ResumeBioWriter(ChatAssistant):
     priming_message: str | None = (
@@ -12,6 +17,7 @@ class ResumeBioWriter(ChatAssistant):
     auto_prime: bool = True
 
 
+@AssistantRegister.register("resume-experience-writer")
 @attrs.define
 class ResumeExperienceWriter(ProactiveChatAssistant):
     priming_message: str | None = (

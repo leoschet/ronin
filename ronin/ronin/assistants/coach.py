@@ -1,9 +1,8 @@
 import functools
 
 import attrs
-from loguru import logger
 
-from ronin.assistants.base import ProactiveChatAssistant
+from ronin.assistants.base import AssistantRegister, ProactiveChatAssistant
 from ronin.prompts.templates import (
     AssistantMessageTemplate,
     SystemPromptTemplate,
@@ -11,6 +10,7 @@ from ronin.prompts.templates import (
 )
 
 
+@AssistantRegister.register("conversation-designer")
 @attrs.define
 class ConversationDesigner(ProactiveChatAssistant):
     """Conversation Designer assistant."""

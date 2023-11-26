@@ -4,15 +4,21 @@ import click
 from haystack.nodes import PromptModel, PromptNode
 from loguru import logger
 
-from ronin.assistants.base import ChatAssistant, ProactiveChatAssistant
-from ronin.assistants.coach import ConversationDesigner
+from ronin.assistants import AssistantRegister, ProactiveChatAssistant
 from ronin.cli import coroutine
 from ronin.config import settings
 from ronin.prompts.templates import SystemPromptTemplate
 
 
-@click.command(name="chat", help="Chat with the assistant.")
+@click.command(name="chat", help="Chat with Ronin assistants.")
 @coroutine
+@click.option(
+    "--assistant",
+    "-a",
+    "assistant_id",
+    default="base-chat-assistant",
+    help="ID of the assistant you want to chat with.",
+)
 @click.option(
     "--message",
     "-m",
@@ -21,7 +27,7 @@ from ronin.prompts.templates import SystemPromptTemplate
 )
 @click.option(
     "--system-message",
-    default="You are a helpful assistant.",
+    default="",
     help="System message to use. This overrides the existing system message.",
 )
 @click.option(
@@ -42,6 +48,7 @@ from ronin.prompts.templates import SystemPromptTemplate
     help="Path where to save .json file with output.",
 )
 async def chat(
+    assistant_id: str,
     first_message: str,
     interactive: bool,
     system_message: str,
@@ -61,11 +68,25 @@ async def chat(
     )
     openai_node = PromptNode(prompt_azure_openai)
 
-    logger.info("Starting Assistant.")
-    assistant = ConversationDesigner(
-        chat_node=openai_node,
-        # chat_system_prompt=SystemPromptTemplate.from_str(system_message)
-    )
+    logger.debug(f"Loading {assistant_id}.")
+    Assistant = AssistantRegister.get(assistant_id)
+
+    assistant_kwargs = {}
+    if system_message:
+        logger.debug("Building system message.")
+        assistant_kwargs["chat_system_prompt"] = SystemPromptTemplate.from_str(
+            system_message
+        )
+
+    try:
+        logger.info(f"Starting {assistant_id} Assistant.")
+        assistant = Assistant(chat_node=openai_node, **assistant_kwargs)
+    except TypeError:
+        logger.exception(
+            f"Could not instantiate {assistant_id} Assistant. "
+            f"Make sure you have passed all required arguments."
+        )
+        return
 
     if isinstance(assistant, ProactiveChatAssistant):
         response = assistant.proactively_send_message()
