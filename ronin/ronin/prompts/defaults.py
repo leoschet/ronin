@@ -4,7 +4,7 @@ from ronin.prompts.templates import UserMessageTemplate
 # or if we want to manage defaults scattered across the codebase.
 DEFAULT_PROACTIVE_MESSAGE_TRIGGER = UserMessageTemplate.from_str(
     prompt=(
-        "Generate 10 questions to the user that will help you get all the information "
+        "Generate 5 questions to the user that will help you get all the information "
         "that is relevant for you to fulfill your task."
     )
 )
