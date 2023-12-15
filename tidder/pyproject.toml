@@ -11,12 +11,18 @@ python = "^3.11"
 attrs = "^23.1.0"
 polars = "^0.19.19"
 
+[tool.poetry.group.dev]
+optional=true
+
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.8"
 ipykernel = "^6.27.1"
 polars = {extras = ["pandas"], version = "^0.19.19"}
 pandas = "^2.1.4"
 
+
+[tool.poetry.group.loader]
+optional=true
 
 [tool.poetry.group.loader.dependencies]
 webvtt-py = "^0.4.6"
