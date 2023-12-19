@@ -77,6 +77,7 @@ class CaptionsReader:
                 pl.col(self.text_column).str.split(caption_splitter)
             )
             .explode(self.text_column)
+            # Add a temporary column where its value increments whenever the text changes.
             # https://github.com/pola-rs/polars/issues/9328#issue-1750954001
             # .with_columns(
             #     (pl.col(self.text_column) != pl.col(self.text_column).shift())
