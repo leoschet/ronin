@@ -5,12 +5,30 @@ from sklearn.base import ClusterMixin
 from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
+from functools import partial
 
 from tidder.dependencies import pyplot as plt
 
 from .gaussian_mixture import AutoGaussianMixture
 from .kmeans import AutoKMeans
 from .spectral_clustering import AutoSpectralClustering
+from sklearn.base import BaseEstimator, TransformerMixin
+from typing import Any, Callable
+
+
+@attrs.define
+class Tracker(BaseEstimator, TransformerMixin):
+    """Track information in the middle of a pipeline."""
+
+    info_extractor: Callable
+    info: Any = attrs.field(default=None, init=False)
+
+    def transform(self, X):
+        self.info = self.info_extractor(X)
+        return X
+
+    def fit(self, X, y=None, **fit_params):
+        return self
 
 
 @attrs.define
@@ -43,6 +61,13 @@ class ClusteringExperimenter:
     clustering_model: ClusterMixin = attrs.field(default=None, init=False)
     dimensionality_reduction: ClusterMixin = attrs.field(default=None, init=False)
 
+    _embeddings_tracker_step_name: str = attrs.field(
+        default="_embeddings_tracker", init=False, repr=False
+    )
+    _embeddings_tracker: Tracker = attrs.field(
+        factory=partial(Tracker, info_extractor=lambda x: x), init=False, repr=False
+    )
+
     def build(self, return_self: bool = True) -> "ClusteringExperimenter" | Pipeline:
         """Build experiment pipeline."""
         if self.embed_model is None:
@@ -54,6 +79,7 @@ class ClusteringExperimenter:
         steps.append(("embed_model", self.embed_model))
         if self.dimensionality_reduction is not None:
             steps.append(("dimensionality_reduction", self.dimensionality_reduction))
+        steps.append((self._embeddings_tracker_step_name, self._embeddings_tracker))
         steps.append(("clustering_model", self.clustering_model))
 
         self.experiment_pipeline = Pipeline(steps)
@@ -72,10 +98,13 @@ class ClusteringExperimenter:
 
         labels = self.experiment_pipeline.fit_predict(self.raw_data)
 
-        # if self.plot:
-        #     self._plot_clustering(
-        #         self.experiment_pipeline["embed_model"].embeddings, labels
-        #     )
+        if self.plot:
+            self._plot_clustering(
+                self.experiment_pipeline.named_steps[
+                    self._embeddings_tracker_step_name
+                ].info,
+                labels,
+            )
 
         return self.experiment_pipeline, labels
 
@@ -115,22 +144,23 @@ class ClusteringExperimenter:
         self.clustering_model = DBSCAN()
         return self
 
-    # def _plot_clustering(self, embedded_data, labels: np.ndarray):
-    #     """Plot clusters and embeddings in 2D space for interpreting results."""
-    #     # Project embeddings
-    #     plottable_embedded_data = embedded_data
-    #     if embedded_data.shape[1] > 2:
-    #         plottable_embedded_data = self._apply_pca(embedded_data, n_components=2)
+    def _plot_clustering(self, embedded_data, labels: np.ndarray):
+        """Plot clusters and embeddings in 2D space for interpreting results."""
+        # Project embeddings
+        plottable_embedded_data = embedded_data
+        if embedded_data.shape[1] > 2:
+            pca = PCA(n_components=2)
+            plottable_embedded_data = pca.fit_transform(embedded_data)
 
-    #     # Getting unique labels
-    #     u_labels = np.unique(labels)
+        # Getting unique labels
+        u_labels = np.unique(labels)
 
-    #     # Plotting the results:
-    #     for i in u_labels:
-    #         plt.scatter(
-    #             plottable_embedded_data[labels == i, 0],
-    #             plottable_embedded_data[labels == i, 1],
-    #             label=i,
-    #         )
-    #     plt.legend()
-    #     plt.show()
+        # Plotting the results:
+        for i in u_labels:
+            plt.scatter(
+                plottable_embedded_data[labels == i, 0],
+                plottable_embedded_data[labels == i, 1],
+                label=i,
+            )
+        plt.legend()
+        plt.show()
