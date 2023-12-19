@@ -1,3 +1,5 @@
+from functools import partial
+
 import attrs
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -5,30 +7,13 @@ from sklearn.base import ClusterMixin
 from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
-from functools import partial
 
 from tidder.dependencies import pyplot as plt
+from tidder.transforms.tracker import Tracker
 
 from .gaussian_mixture import AutoGaussianMixture
 from .kmeans import AutoKMeans
 from .spectral_clustering import AutoSpectralClustering
-from sklearn.base import BaseEstimator, TransformerMixin
-from typing import Any, Callable
-
-
-@attrs.define
-class Tracker(BaseEstimator, TransformerMixin):
-    """Track information in the middle of a pipeline."""
-
-    info_extractor: Callable
-    info: Any = attrs.field(default=None, init=False)
-
-    def transform(self, X):
-        self.info = self.info_extractor(X)
-        return X
-
-    def fit(self, X, y=None, **fit_params):
-        return self
 
 
 @attrs.define
@@ -124,19 +109,25 @@ class ClusteringExperimenter:
         self.dimensionality_reduction = PCA(n_components=n_components)
         return self
 
-    def produce_gaussian_mixture(self, k_range: range) -> "ClusteringExperimenter":
+    def produce_gaussian_mixture(self, **kwargs) -> "ClusteringExperimenter":
         """Use GaussianMixture for clustering."""
-        self.clustering_model = AutoGaussianMixture(k_range=k_range, plot=self.plot)
+        kwargs["random_state"] = self.random_state
+        kwargs["plot"] = self.plot
+        self.clustering_model = AutoGaussianMixture(**kwargs)
         return self
 
-    def produce_kmeans(self, k_range: range) -> "ClusteringExperimenter":
+    def produce_kmeans(self, **kwargs) -> "ClusteringExperimenter":
         """Use KMeans for clustering."""
-        self.clustering_model = AutoKMeans(k_range=k_range, plot=self.plot)
+        kwargs["random_state"] = self.random_state
+        kwargs["plot"] = self.plot
+        self.clustering_model = AutoKMeans(**kwargs)
         return self
 
-    def produce_spectral_clustering(self) -> "ClusteringExperimenter":
+    def produce_spectral_clustering(self, **kwargs) -> "ClusteringExperimenter":
         """Use SpectralClustering for clustering."""
-        self.clustering_model = AutoSpectralClustering(plot=self.plot)
+        kwargs["random_state"] = self.random_state
+        kwargs["plot"] = self.plot
+        self.clustering_model = AutoSpectralClustering(**kwargs)
         return self
 
     def produce_dbscan(self) -> "ClusteringExperimenter":
