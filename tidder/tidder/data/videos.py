@@ -51,13 +51,19 @@ class Video:
     playlist_title: str
     language: str
 
-    captions: pl.DataFrame
+    captions: Captions
 
     @classmethod
     def from_files(
-        cls, video_info_file: str, captions_file: str, captions_kwargs: dict
+        cls,
+        video_info_file: str,
+        captions_file: str,
+        captions_kwargs: dict | None = None,
     ) -> "Video":
         """Creates a Video object from video info and captions files."""
+
+        if captions_kwargs is None:
+            captions_kwargs = {}
 
         with open(video_info_file) as f:
             video_info = json.load(f)
@@ -92,15 +98,15 @@ class Video:
         """Augment captions with extra information."""
 
         captions.add_time_based_info(
-            info=video_chapters,
-            info_value_column="title",
+            info_dicts=video_chapters,
             taget_column="chapters",
+            info_value_column="title",
         )
 
         captions.add_time_based_info(
-            video_heatmap,
-            info_value_column="value",
+            info_dicts=video_heatmap,
             taget_column="heatmap",
+            info_value_column="value",
             default_value=0,
         )
 
