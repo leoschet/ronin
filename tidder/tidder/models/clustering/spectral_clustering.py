@@ -155,7 +155,7 @@ class AutoSpectralClustering(SpectralClustering):
         laplacian_affinity_matrix = csgraph.laplacian(
             self.internal_affinity_matrix, normed=True
         )
-        n_components = self.internal_affinity_matrix.shape[0]
+        n_components = self.internal_affinity_matrix.shape[0]  # noqa: F841
 
         # LM parameter : Eigenvalues with largest magnitude (eigs, eigsh), that is, largest eigenvalues in
         # the euclidean norm of complex numbers.
