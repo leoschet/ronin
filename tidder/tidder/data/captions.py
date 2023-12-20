@@ -4,6 +4,7 @@ import polars as pl
 import tidder.polars as tpl
 from tidder.data.loader import CaptionsReader
 from tidder.typing_mixin import TimeBasedInfo
+from typing import Generator
 
 
 @attrs.define
@@ -112,6 +113,7 @@ class Captions:
                 df_end_column=self.end_column,
                 info_start_column=info_start_column,
                 info_end_column=info_end_column,
+                fill_strategy='forward'
             )
         )
 

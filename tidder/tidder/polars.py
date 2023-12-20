@@ -14,6 +14,7 @@ def time_based_replace(
     df_end_column: str = "end",
     info_start_column: str = "start_time",
     info_end_column: str = "end_time",
+    fill_strategy: str | None = None,
 ) -> pl.Expr:
     """Map start and end times to chapter titles.
 
@@ -24,19 +25,19 @@ def time_based_replace(
 
     Parameters
     ----------
-        info_dicts : list[TimeBasedInfo]
-            A list of dictionaries containing time based information.
-        taget_column : str
-            The name of the column to be created.
-        info_value_column : str
-            The name of the column containing the information value.
-        default_value : str, optional, default None
-            The default value to be used if no information is found
-            for a time span.
-        info_start_column : str, optional, default "start_time"
-            The name of the column containing the start time of the information.
-        info_end_column : str, optional, default "end_time"
-            The name of the column containing the end time of the information.
+    info_dicts : list[TimeBasedInfo]
+        A list of dictionaries containing time based information.
+    taget_column : str
+        The name of the column to be created.
+    info_value_column : str
+        The name of the column containing the information value.
+    default_value : str, optional, default None
+        The default value to be used if no information is found
+        for a time span.
+    info_start_column : str, optional, default "start_time"
+        The name of the column containing the start time of the information.
+    info_end_column : str, optional, default "end_time"
+        The name of the column containing the end time of the information.
 
     Returns
     -------
@@ -54,4 +55,4 @@ def time_based_replace(
     if default_value is not None:
         expr = expr.otherwise(default_value)
 
-    return expr.alias(taget_column)
+    return expr.fill_null(strategy=fill_strategy).alias(taget_column)
