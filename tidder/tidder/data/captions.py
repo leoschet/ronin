@@ -39,6 +39,31 @@ class Captions:
             text_column=reader.text_column,
         )
 
+    def get_content(self, concat_symbol: str = " ") -> str:
+        """Get captions content.
+
+        Parameters
+        ----------
+        concat_symbol : str, optional, default " "
+            The symbol to be used to concatenate the captions.
+        """
+        return concat_symbol.join(
+            self.df.sort(by=self.start_column)[self.text_column].to_list()
+        )
+
+    def groupby(self, by: str) -> Generator[tuple[str, "Captions"], None, None]:
+        """Groups captions by a column."""
+        for group_id, group_df in self.df.groupby(by, maintain_order=True):
+            yield (
+                group_id,
+                Captions(
+                    df=group_df,
+                    start_column=self.start_column,
+                    end_column=self.end_column,
+                    text_column=self.text_column,
+                ),
+            )
+
     def add_time_based_info(
         self,
         info_dicts: list[TimeBasedInfo],

@@ -103,3 +103,16 @@ class Video:
             taget_column="heatmap",
             default_value=0,
         )
+
+    def get_chapters_content(self, concat_symbol: str = " ") -> str:
+        """Get chapters content.
+
+        Parameters
+        ----------
+        concat_symbol : str, optional, default " "
+            The symbol to be used to concatenate the chapters.
+        """
+        return {
+            chapter_name: captions.get_content(concat_symbol=concat_symbol)
+            for chapter_name, captions in self.captions.groupby(by="chapters")
+        }
