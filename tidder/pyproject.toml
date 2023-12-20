@@ -10,6 +10,7 @@ readme = "README.md"
 python = "^3.11"
 attrs = "^23.1.0"
 polars = "^0.19.19"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev]
 optional=true
@@ -19,6 +20,7 @@ ruff = "^0.1.8"
 ipykernel = "^6.27.1"
 polars = {extras = ["pandas"], version = "^0.19.19"}
 pandas = "^2.1.4"
+matplotlib = "^3.8.2"
 
 
 [tool.poetry.group.loader]
@@ -26,6 +28,15 @@ optional=true
 
 [tool.poetry.group.loader.dependencies]
 webvtt-py = "^0.4.6"
+
+[tool.poetry.group.summarization]
+optional=true
+
+[tool.poetry.group.summarization.dependencies]
+bertopic = "^0.16.0"
+sentence-transformers = "^2.2.2"
+scikit-learn = "^1.3.2"
+spacy = "^3.7.2"
 
 [build-system]
 requires = ["poetry-core"]

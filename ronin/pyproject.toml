@@ -3,6 +3,7 @@ name = "ronin"
 version = "0.1.0"
 description = "Rogue assistant that follows its own path."
 authors = ["Leonardo Schettini <leonardo.schettini@crayon.com>"]
+license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -13,6 +14,7 @@ python-dotenv = "^1.0.0"
 pydantic = "<2"
 attrs = "^23.1.0"
 loguru = "^0.7.2"
+bertopic = "^0.16.0"
 
 [tool.poetry.scripts]
 ronin = 'ronin.cli.main:ronin'
@@ -20,6 +22,11 @@ ronin = 'ronin.cli.main:ronin'
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.6"
 ipykernel = "^6.26.0"
+pandas = "^2.1.3"
+polars = {extras = ["pandas"], version = "^0.19.19"}
+
+[tool.poetry.group.tidder.dependencies]
+webvtt-py = "^0.4.6"
 
 [build-system]
 requires = ["poetry-core"]
