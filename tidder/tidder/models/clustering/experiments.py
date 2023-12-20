@@ -1,50 +1,42 @@
 from functools import partial
+from typing import Self
 
 import attrs
 import numpy as np
-from sentence_transformers import SentenceTransformer
-from sklearn.base import ClusterMixin
-from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 
 from tidder.dependencies import pyplot as plt
 from tidder.transforms.tracker import Tracker
 
-from .gaussian_mixture import AutoGaussianMixture
-from .kmeans import AutoKMeans
-from .spectral_clustering import AutoSpectralClustering
+from .builder import ClusteringBuilder
 
 
-@attrs.define
-class ClusteringExperimenter:
+@attrs.define(kw_only=True)
+class ClusteringExperimenter(ClusteringBuilder):
     r"""Builder runner of clustering experiments.
 
     Attributes
     ----------
-    random_state : int, default to 42
-        Random state to be used in experiments.
+    plot : bool, default to True
+        Whether to plot the clustering results.
     experiment_pipeline : `Pipeline` or None
         Experiment pipeline.
-    raw_data : list of str
-        Raw data to be used in experiments.
-    embed_model : `SentenceTransformer` or None
+
+    Attributes (inherited from `ClusteringBuilder`)
+    ----------
+    random_state : int, default to 42
+        Random state to be used in experiments.
+    embedding_model : `SentenceTransformer` or None
         Embedding model to be used in experiments.
     clustering_model : `ClusterMixin` or None
         Clustering model to be used in experiments.
-    dimensionality_reduction : `TransformerMixin` or None
+    dimensionality_reduction_model : `TransformerMixin` or None
         Dimensionality reduction model to be used in experiments.
     """
 
-    random_state: int = attrs.field(default=42, kw_only=True)
     plot: int = attrs.field(default=True, kw_only=True)
-
     experiment_pipeline: Pipeline = attrs.field(default=None, init=False)
-
-    raw_data: list[str] = attrs.field(default=None, init=False)
-    embed_model: SentenceTransformer = attrs.field(default=None, init=False)
-    clustering_model: ClusterMixin = attrs.field(default=None, init=False)
-    dimensionality_reduction: ClusterMixin = attrs.field(default=None, init=False)
 
     _embeddings_tracker_step_name: str = attrs.field(
         default="_embeddings_tracker", init=False, repr=False
@@ -53,19 +45,21 @@ class ClusteringExperimenter:
         factory=partial(Tracker, info_extractor=lambda x: x), init=False, repr=False
     )
 
-    def build(self, return_self: bool = True) -> "ClusteringExperimenter" | Pipeline:
+    def build(self, return_self: bool = True) -> Self | Pipeline:
         """Build experiment pipeline."""
-        if self.embed_model is None:
+        if self.embedding_model is None:
             raise ValueError("Embedding model must be provided.")
         if self.clustering_model is None:
             raise ValueError("Clustering model must be provided.")
 
         steps = []
-        steps.append(("embed_model", self.embed_model))
-        if self.dimensionality_reduction is not None:
-            steps.append(("dimensionality_reduction", self.dimensionality_reduction))
+        steps.append(("embedding", self.embedding_model))
+        if self.dimensionality_reduction_model is not None:
+            steps.append(
+                ("dimensionality_reduction", self.dimensionality_reduction_model)
+            )
         steps.append((self._embeddings_tracker_step_name, self._embeddings_tracker))
-        steps.append(("clustering_model", self.clustering_model))
+        steps.append(("clustering", self.clustering_model))
 
         self.experiment_pipeline = Pipeline(steps)
 
@@ -92,48 +86,6 @@ class ClusteringExperimenter:
             )
 
         return self.experiment_pipeline, labels
-
-    def produce_sentence_transformer(self, model_name: str) -> "ClusteringExperimenter":
-        """Use SentenceTransformer for embedding."""
-        self.embedding_model = SentenceTransformer(model_name)
-        return self
-
-    def produce_pca(self, n_components: int) -> "ClusteringExperimenter":
-        """Use PCA for dimensionality reduction.
-
-        Parameters
-        ----------
-        n_components: int
-            Number of desired components (n_features)
-        """
-        self.dimensionality_reduction = PCA(n_components=n_components)
-        return self
-
-    def produce_gaussian_mixture(self, **kwargs) -> "ClusteringExperimenter":
-        """Use GaussianMixture for clustering."""
-        kwargs["random_state"] = self.random_state
-        kwargs["plot"] = self.plot
-        self.clustering_model = AutoGaussianMixture(**kwargs)
-        return self
-
-    def produce_kmeans(self, **kwargs) -> "ClusteringExperimenter":
-        """Use KMeans for clustering."""
-        kwargs["random_state"] = self.random_state
-        kwargs["plot"] = self.plot
-        self.clustering_model = AutoKMeans(**kwargs)
-        return self
-
-    def produce_spectral_clustering(self, **kwargs) -> "ClusteringExperimenter":
-        """Use SpectralClustering for clustering."""
-        kwargs["random_state"] = self.random_state
-        kwargs["plot"] = self.plot
-        self.clustering_model = AutoSpectralClustering(**kwargs)
-        return self
-
-    def produce_dbscan(self) -> "ClusteringExperimenter":
-        """Use DBSCAN for clustering."""
-        self.clustering_model = DBSCAN()
-        return self
 
     def _plot_clustering(self, embedded_data, labels: np.ndarray):
         """Plot clusters and embeddings in 2D space for interpreting results."""
