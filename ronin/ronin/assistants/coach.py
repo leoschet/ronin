@@ -2,12 +2,14 @@ import functools
 
 import attrs
 
-from ronin.assistants.base import AssistantRegister, ProactiveChatAssistant
 from ronin.prompts.templates import (
     AssistantMessageTemplate,
     SystemPromptTemplate,
     UserMessageTemplate,
 )
+
+from .base.chat import ProactiveChatAssistant
+from .base.registry import AssistantRegister
 
 
 @AssistantRegister.register("conversation-designer")
