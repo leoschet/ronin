@@ -1,10 +1,7 @@
 import attrs
 
-from ronin.assistants.base import (
-    AssistantRegister,
-    ChatAssistant,
-    ProactiveChatAssistant,
-)
+from .base.chat import ChatAssistant, ProactiveChatAssistant
+from .base.registry import AssistantRegister
 
 
 @AssistantRegister.register("resume-bio-writer")
