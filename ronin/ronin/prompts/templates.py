@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Self
 
 import attrs
 from haystack.nodes import PromptTemplate
@@ -13,7 +14,7 @@ class BaseChatPromptTemplate(ABC):
     message_field_name: str = "content"
 
     @classmethod
-    def from_str(cls, prompt: str, **kwargs) -> "BaseChatPromptTemplate":
+    def from_str(cls, prompt: str, **kwargs) -> Self:
         return cls(prompt=PromptTemplate(prompt=prompt), **kwargs)
 
     @abstractmethod
@@ -32,7 +33,7 @@ class BaseChatMessageTemplate(BaseChatPromptTemplate, ABC):
     message_prompt_parameter: str = "message"
 
     @classmethod
-    def with_dummy_template(cls, **kwargs) -> "BaseChatPromptTemplate":
+    def with_dummy_template(cls, **kwargs) -> Self:
         return cls(
             prompt=PromptTemplate(prompt="{message}"),
             message_prompt_parameter="message",
