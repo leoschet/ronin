@@ -1,12 +1,12 @@
 import json
 
 import click
-from haystack.nodes import PromptModel, PromptNode
+from haystack.nodes import PromptNode
 from loguru import logger
 
 from ronin.assistants import AssistantRegister, ProactiveChatAssistant
 from ronin.cli import coroutine
-from ronin.config import settings
+from ronin.llm import LLMProvider, get_llm
 from ronin.prompts.templates import SystemPromptTemplate
 
 
@@ -18,6 +18,12 @@ from ronin.prompts.templates import SystemPromptTemplate
     "assistant_id",
     default="base-chat-assistant",
     help="ID of the assistant you want to chat with.",
+)
+@click.option(
+    "--llm",
+    "llm_provider",
+    default="openai",
+    help="ID of the LLM provider you want. Either `azure` or `openai`.",
 )
 @click.option(
     "--message",
@@ -49,24 +55,17 @@ from ronin.prompts.templates import SystemPromptTemplate
 )
 async def chat(
     assistant_id: str,
+    llm_provider: str,
     first_message: str,
     interactive: bool,
     system_message: str,
     max_length: int,
     output_path: str,
 ):
-    logger.info("Connecting to OpenAI.")
-    prompt_azure_openai = PromptModel(
-        model_name_or_path=settings.azure_openai_chatgpt_deployment,
-        api_key=settings.azure_openai_api_key,
-        model_kwargs={
-            "api_version": settings.azure_openai_api_version,
-            "azure_base_url": settings.azure_openai_endpoint,
-            "azure_deployment_name": settings.azure_openai_chatgpt_deployment,
-        },
+    llm: PromptNode = get_llm(
+        LLMProvider(llm_provider),
         max_length=max_length,
     )
-    openai_node = PromptNode(prompt_azure_openai)
 
     logger.debug(f"Loading {assistant_id}.")
     Assistant = AssistantRegister.get(assistant_id)
@@ -80,7 +79,7 @@ async def chat(
 
     try:
         logger.info(f"Starting {assistant_id} Assistant.")
-        assistant = Assistant(chat_node=openai_node, **assistant_kwargs)
+        assistant = Assistant(chat_node=llm, **assistant_kwargs)
     except TypeError:
         logger.exception(
             f"Could not instantiate {assistant_id} Assistant. "
