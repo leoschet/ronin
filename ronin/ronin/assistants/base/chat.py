@@ -60,7 +60,7 @@ class ChatAssistant:
     history: list[ChatMessage] = attrs.field(factory=list, repr=False)
 
     def __attrs_post_init__(self):
-        self.reset_history()
+        self.try_auto_prime()
 
     def build_chat_system_message(self, **kwargs) -> ChatMessage:
         """Build system's chat message."""
@@ -81,6 +81,10 @@ class ChatAssistant:
     def reset_history(self):
         """Reset the chat history."""
         self.history = []
+        self.try_auto_prime()
+
+    def try_auto_prime(self):
+        """Try to auto-prime the assistant."""
         if self.auto_prime and self.priming_message:
             self.prime()
 
