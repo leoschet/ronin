@@ -1,5 +1,3 @@
-from typing import ClassVar, MutableMapping, Type
-
 import attrs
 from haystack.nodes import PromptNode
 from loguru import logger
@@ -12,46 +10,7 @@ from ronin.prompts.templates import (
 )
 from ronin.typing_mixin import ChatMessage
 
-
-class AssistantRegister:
-    """Implements the Register pattern for assistants.
-
-    It's important that the assistant class extends from `ChatAssistant`.
-    ```
-    @AssistantRegister.register("my-chat-assistant")
-    class MyChatAssistant(ChatAssistant)
-    ```
-
-    You can retrieve the registered assistant class by using the `get` method:
-    ```
-    MyChatAssistant = AssistantRegister.get("my-chat-assistant")
-    ```
-    """
-
-    _registry: ClassVar[MutableMapping[str, Type["ChatAssistant"]]] = dict()
-
-    @classmethod
-    def register(cls, name: str):
-        """Decorator for registering assistants."""
-
-        def _register(assistant_class: Type["ChatAssistant"]):
-            cls._registry[name] = assistant_class
-            return assistant_class
-
-        return _register
-
-    @classmethod
-    def get(cls, name: str) -> Type["ChatAssistant"]:
-        """Retrieve an Assistant's class from its name."""
-        if name not in cls._registry:
-            error_msg = (
-                f"Could not find assistant registered with name '{name}'. "
-                f"Available are: {list(cls._registry.keys())}"
-            )
-            logger.error(error_msg)
-            raise KeyError(error_msg)
-
-        return cls._registry[name]
+from .registry import AssistantRegister
 
 
 # XXX: It would be nice to have this be a Haystack Node.
@@ -98,7 +57,7 @@ class ChatAssistant:
     priming_message: str | None = None
     auto_prime: bool = False
 
-    history: list[ChatMessage] = attrs.field(factory=list, repr=False, init=False)
+    history: list[ChatMessage] = attrs.field(factory=list, repr=False)
 
     def __attrs_post_init__(self):
         if self.auto_prime and self.priming_message:
@@ -122,6 +81,10 @@ class ChatAssistant:
 
     def prime(self) -> ChatMessage:
         """Prime the assistant to a certain state."""
+        if not self.priming_message:
+            logger.warning(f"No priming message set for assistant {type(self)}.")
+            return
+
         logger.debug("Priming assistant to helpful state.")
         messages = [
             # XXX: Should priming happen with or without the system message?
@@ -136,10 +99,12 @@ class ChatAssistant:
     def chat(
         self,
         message: str,
-        user_message_kwargs: dict = dict(),
-        system_message_kwargs: dict = dict(),
+        user_message_kwargs: dict | None = None,
+        system_message_kwargs: dict | None = None,
     ) -> ChatMessage:
-        """Chat with the assistant."""
+        """Chat with an assistant."""
+        if not user_message_kwargs:
+            user_message_kwargs = {}
 
         if not system_message_kwargs:
             system_message_kwargs = self.chat_system_kwargs
