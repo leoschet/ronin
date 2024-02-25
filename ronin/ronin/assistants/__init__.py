@@ -11,4 +11,3 @@ from .base.registry import (
 )
 from .coach import ConversationDesigner
 from .resume_writer import ResumeBioWriter, ResumeExperienceWriter
-from .twitter import TwitterCritic, TwitterWriter, TwitterWritingTeam
