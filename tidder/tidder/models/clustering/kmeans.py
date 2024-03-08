@@ -30,6 +30,7 @@ class AutoKMeans(KMeans):
     k_range: Iterable[int] = attrs.field(default=range(2, 15), repr=False, kw_only=True)
     random_state: int = attrs.field(default=42, kw_only=True)
     plot: bool = attrs.field(default=False, kw_only=True)
+    plot_fig: plt.Figure = attrs.field(default=None, repr=False, init=False)
 
     def __attrs_post_init__(self):
         # Placeholder value for n_clusters, will be set in `fit`
@@ -92,8 +93,7 @@ class AutoKMeans(KMeans):
 
         logger.trace(f"{all_kmeans_score=}")
 
-        if self.plot:
-            self._plot_elbow_analysis(all_kmeans, best_k)
+        self._plot_elbow_analysis(all_kmeans, best_k)
 
         return best_k
 
@@ -125,7 +125,11 @@ class AutoKMeans(KMeans):
             label=f"elbow at k = {best_k}, score = {round(kmeans_info[best_k]['inertia'], 3)}",
         )
         plt.legend(loc="upper right", frameon=True, framealpha=1)
-        plt.show()
+
+        self.plot_fig = fig
+
+        if self.plot is not None:
+            plt.show()
 
 
 @attrs.define
