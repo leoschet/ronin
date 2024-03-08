@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.base import ClusterMixin
 from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
+from torch import Tensor
 from umap import UMAP
 
 from tidder.transforms.dimensionality_reduction import DummyDimensionalityReduction
@@ -28,6 +29,8 @@ class ClusteringBuilder(ABC):
     ----------
     random_state : int, default to 42
         Random state to be used in experiments.
+    plot : bool, default to False
+        Whether to plot the results of experiments.
     embedding_model : `SentenceTransformer` or None
         Embedding model to be used in experiments.
     clustering_model : `ClusterMixin` or None
@@ -37,6 +40,8 @@ class ClusteringBuilder(ABC):
     """
 
     random_state: int = attrs.field(default=42, kw_only=True)
+    plot: bool = attrs.field(default=False, kw_only=True)
+    fit: bool = attrs.field(default=True, kw_only=True)
 
     embedding_model: SentenceTransformer | None = attrs.field(default=None, init=False)
     clustering_model: ClusterMixin | None = attrs.field(default=None, init=False)
@@ -76,28 +81,46 @@ class ClusteringBuilder(ABC):
         self.dimensionality_reduction_model = DummyDimensionalityReduction()
         return self
 
-    def produce_gaussian_mixture(self, **kwargs) -> Self:
+    def produce_gaussian_mixture(
+        self, embedded_data: list[Tensor] = None, **kwargs
+    ) -> Self:
         """Use GaussianMixture for clustering."""
         kwargs["random_state"] = self.random_state
         kwargs["plot"] = self.plot
         self.clustering_model = AutoGaussianMixture(**kwargs)
+
+        if self.fit and embedded_data is not None:
+            self.clustering_model.fit(embedded_data)
+
         return self
 
-    def produce_kmeans(self, **kwargs) -> Self:
+    def produce_kmeans(self, embedded_data: list[Tensor] = None, **kwargs) -> Self:
         """Use KMeans for clustering."""
         kwargs["random_state"] = self.random_state
         kwargs["plot"] = self.plot
         self.clustering_model = AutoKMeans(**kwargs)
+
+        if self.fit and embedded_data is not None:
+            self.clustering_model.fit(embedded_data)
+
         return self
 
-    def produce_spectral_clustering(self, **kwargs) -> Self:
+    def produce_spectral_clustering(
+        self, embedded_data: list[Tensor] = None, **kwargs
+    ) -> Self:
         """Use SpectralClustering for clustering."""
         kwargs["random_state"] = self.random_state
         kwargs["plot"] = self.plot
         self.clustering_model = AutoSpectralClustering(**kwargs)
+
+        if self.fit and embedded_data is not None:
+            self.clustering_model.fit(embedded_data)
+
         return self
 
-    def produce_dbscan(self) -> Self:
+    def produce_dbscan(self, embedded_data: list[Tensor] = None) -> Self:
         """Use DBSCAN for clustering."""
         self.clustering_model = DBSCAN()
+        if self.fit and embedded_data is not None:
+            self.clustering_model.fit(embedded_data)
         return self
