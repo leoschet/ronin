@@ -40,11 +40,12 @@ class BERTopicDirector:
         data: pd.DataFrame,
         target_column: str,
         random_state: int,
+        k_range: range = range(2, 20),
         fit: bool = True,
         plot: bool = False,
     ) -> BERTopic:
         """Build BERTopic model."""
-        builder = BERTopicBuilder(random_state=random_state)
+        builder = BERTopicBuilder(random_state=random_state, plot=plot, fit=False)
         builder.produce_sentence_transformer("all-MiniLM-L6-v2")
 
         embedded_data = builder.embedding_model.encode(
@@ -54,7 +55,7 @@ class BERTopicDirector:
         )
 
         builder.produce_identity_dimensionality_reduction().produce_kmeans(
-            k_range=range(2, 20), plot=plot
+            embedded_data=embedded_data, k_range=k_range, plot=plot
         ).produce_count_vectorizer(
             stop_words="english", ngram_range=(1, 3)
         ).produce_class_tfidf(
@@ -80,7 +81,9 @@ class BERTopicDirector:
         ).build()
 
         if fit:
-            builder.bertopic.fit(data[target_column].values, embedded_data.numpy())
+            print(f"{len(data[target_column].values)=}")
+            print(f"{len(embedded_data.numpy())=}")
+            builder.bertopic.fit(documents=data[target_column].tolist(), embeddings=embedded_data.numpy())
 
         return builder.bertopic
 
