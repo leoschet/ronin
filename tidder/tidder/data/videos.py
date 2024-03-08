@@ -1,7 +1,7 @@
 import json
+from typing import Any
 
 import attrs
-import polars as pl
 
 from tidder.data.captions import Captions
 from tidder.typing_mixin import TimeBasedInfo
@@ -53,6 +53,8 @@ class Video:
 
     captions: Captions
 
+    metadata: dict[str, Any] = attrs.field(factory=dict)
+
     @classmethod
     def from_files(
         cls,
@@ -69,10 +71,13 @@ class Video:
             video_info = json.load(f)
 
         captions = Captions.from_file(captions_file, **captions_kwargs)
+        chapters = video_info.get("chapters", [])
+        heatmap = video_info.get("heatmap", [])
+
         cls.augment_captions(
             captions,
-            video_chapters=video_info["chapters"],
-            video_heatmap=video_info["heatmap"],
+            video_chapters=chapters,
+            video_heatmap=heatmap,
         )
 
         return cls(
@@ -82,11 +87,12 @@ class Video:
             duration=video_info["duration"],
             categories=video_info["categories"],
             tags=video_info["tags"],
-            chapters=video_info["chapters"],
-            heatmap=video_info["heatmap"],
+            chapters=chapters,
+            heatmap=heatmap,
             playlist_title=video_info["playlist_title"],
             language=video_info["language"],
             captions=captions,
+            metadata=video_info
         )
 
     @staticmethod

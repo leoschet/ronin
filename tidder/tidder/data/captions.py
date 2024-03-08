@@ -103,18 +103,19 @@ class Captions:
         if taget_column in self.df.columns and not override:
             raise ValueError(f"Column '{taget_column}' already exists.")
 
-        self.df = self.df.with_columns(
-            tpl.time_based_replace(
-                info_dicts=info_dicts,
-                taget_column=taget_column,
-                info_value_column=info_value_column,
-                default_value=default_value,
-                df_start_column=self.start_column,
-                df_end_column=self.end_column,
-                info_start_column=info_start_column,
-                info_end_column=info_end_column,
-                fill_strategy='forward'
+        if len(info_dicts) > 0:
+            self.df = self.df.with_columns(
+                tpl.time_based_replace(
+                    info_dicts=info_dicts,
+                    taget_column=taget_column,
+                    info_value_column=info_value_column,
+                    default_value=default_value,
+                    df_start_column=self.start_column,
+                    df_end_column=self.end_column,
+                    info_start_column=info_start_column,
+                    info_end_column=info_end_column,
+                    fill_strategy='forward'
+                )
             )
-        )
 
         return self
