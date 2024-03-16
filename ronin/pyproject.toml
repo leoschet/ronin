@@ -6,27 +6,41 @@ authors = ["Leonardo Schettini <leonardo.schettini@crayon.com>"]
 license = "MIT"
 readme = "README.md"
 
+[tool.poetry.scripts]
+ronin = 'ronin.cli.main:ronin'
+
 [tool.poetry.dependencies]
 python = "^3.11"
 click = "^8.1.7"
-farm-haystack = "^1.22.1"
 python-dotenv = "^1.0.0"
 pydantic = "<2"
 attrs = "^23.1.0"
 loguru = "^0.7.2"
 bertopic = "^0.16.0"
 
-[tool.poetry.scripts]
-ronin = 'ronin.cli.main:ronin'
+[tool.poetry.group.dev]
+optional=true
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.6"
 ipykernel = "^6.26.0"
 pandas = "^2.1.3"
 polars = {extras = ["pandas"], version = "^0.19.19"}
+mypy = "^1.8.0"
 
-[tool.poetry.group.tidder.dependencies]
-webvtt-py = "^0.4.6"
+[tool.poetry.group.haystack]
+optional=true
+
+[tool.poetry.group.haystack.dependencies]
+farm-haystack = "^1.22.1"
+
+[tool.poetry.group.langchain]
+optional=true
+
+[tool.poetry.group.langchain.dependencies]
+langchain = "^0.0.354"
+tiktoken = "^0.6.0"
+langchain-openai = "^0.0.6"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,7 +1,7 @@
 import attrs
-from haystack.nodes import PromptNode
 from loguru import logger
 
+from ronin.llm.base import LLM
 from ronin.prompts.defaults import DEFAULT_PROACTIVE_MESSAGE_TRIGGER
 from ronin.prompts.templates import (
     AssistantMessageTemplate,
@@ -22,8 +22,8 @@ class ChatAssistant:
 
     Attributes
     ----------
-    chat_node : PromptNode
-        The PromptNode that the assistant uses to chat.
+    llm : LLM
+        The Ronin LLM that the assistant uses to chat.
     chat_system_prompt : SystemPromptTemplate
         System's chat message template.
     chat_user_prompt : UserMessageTemplate
@@ -43,7 +43,7 @@ class ChatAssistant:
         The chat history.
     """
 
-    chat_node: PromptNode
+    llm: LLM
     chat_system_prompt: SystemPromptTemplate
     chat_user_prompt: UserMessageTemplate = attrs.field(
         factory=UserMessageTemplate.with_dummy_template, repr=False
@@ -130,9 +130,7 @@ class ChatAssistant:
         return self._chat(messages=messages)
 
     def _chat(self, messages: list[ChatMessage]) -> ChatMessage:
-        # XXX: Haystack does not support passing chat messages to the PromptNode.run
-        # method, and thus we can't use the Pipeline class
-        answer = self.chat_node(messages)[0]
+        answer = self.llm(messages)
 
         assistant_message = self.build_assistant_chat_message(message=answer)
         self.history.append(assistant_message)

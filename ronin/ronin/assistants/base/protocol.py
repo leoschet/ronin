@@ -1,8 +1,8 @@
 from typing import TypeVar
 
-from haystack.nodes import PromptNode
 from typing_extensions import Protocol
 
+from ronin.llm.base import LLM
 from ronin.prompts.templates import (
     AssistantMessageTemplate,
     SystemPromptTemplate,
@@ -18,8 +18,8 @@ class ChatAssistantProtocol(Protocol):
 
     Attributes
     ----------
-    chat_node : PromptNode
-        The PromptNode that the assistant uses to chat.
+    llm : LLM
+        The Ronin LLM that the assistant uses to chat.
     chat_system_prompt : SystemPromptTemplate
         System's chat message template.
     chat_user_prompt : UserMessageTemplate
@@ -39,7 +39,7 @@ class ChatAssistantProtocol(Protocol):
         The chat history.
     """
 
-    chat_node: PromptNode
+    llm: LLM
     chat_system_prompt: SystemPromptTemplate
     chat_user_prompt: UserMessageTemplate
     chat_assistant_prompt: AssistantMessageTemplate

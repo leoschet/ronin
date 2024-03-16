@@ -6,7 +6,8 @@ from loguru import logger
 
 from ronin.assistants import AssistantRegister, ProactiveChatAssistant
 from ronin.cli import coroutine
-from ronin.llm import LLMProvider, get_llm
+from ronin.llm.base import LLM, LLMProvider
+from ronin.llm.loader import create_llm
 from ronin.prompts.templates import SystemPromptTemplate
 
 
@@ -62,7 +63,7 @@ async def chat(
     max_length: int,
     output_path: str,
 ):
-    llm: PromptNode = get_llm(
+    llm: LLM = create_llm(
         LLMProvider(llm_provider),
         max_length=max_length,
     )
