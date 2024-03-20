@@ -9,7 +9,7 @@ from ronin.typing_mixin import ChatMessage
 
 @attrs.define
 class BaseChatPromptTemplate(ABC):
-    prompt: haystack.PromptTemplate
+    prompt: "haystack.PromptTemplate"
     role_field_name: str = "role"
     message_field_name: str = "content"
 
