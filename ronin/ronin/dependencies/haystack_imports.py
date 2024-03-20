@@ -20,8 +20,7 @@ this module.
 
 try:
     import haystack as _
-    from haystack.nodes import PromptModel, PromptNode
-    from haystack.nodes import PromptTemplate
+    from haystack.nodes import PromptModel, PromptNode, PromptTemplate
 except ModuleNotFoundError as e:
     raise ModuleNotFoundError(
         "Haystack is not installed. To install it run `poetry install --with haystack`."

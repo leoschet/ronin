@@ -2,20 +2,20 @@ from abc import ABC, abstractmethod
 from typing import Self
 
 import attrs
-from haystack.nodes import PromptTemplate
+from ronin.dependencies import haystack
 
 from ronin.typing_mixin import ChatMessage
 
 
 @attrs.define
 class BaseChatPromptTemplate(ABC):
-    prompt: PromptTemplate
+    prompt: haystack.PromptTemplate
     role_field_name: str = "role"
     message_field_name: str = "content"
 
     @classmethod
     def from_str(cls, prompt: str, **kwargs) -> Self:
-        return cls(prompt=PromptTemplate(prompt=prompt), **kwargs)
+        return cls(prompt=haystack.PromptTemplate(prompt=prompt), **kwargs)
 
     @abstractmethod
     def fill(self, *args, **kwargs) -> ChatMessage:
@@ -35,7 +35,7 @@ class BaseChatMessageTemplate(BaseChatPromptTemplate, ABC):
     @classmethod
     def with_dummy_template(cls, **kwargs) -> Self:
         return cls(
-            prompt=PromptTemplate(prompt="{message}"),
+            prompt=haystack.PromptTemplate(prompt="{message}"),
             message_prompt_parameter="message",
             **kwargs,
         )
