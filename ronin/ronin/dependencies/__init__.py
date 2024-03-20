@@ -163,16 +163,16 @@ _HAYSTACK_INTEGRATION_AVAILABLE = True
 # Handle static type checking
 # https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING
 if TYPE_CHECKING:
-    from ronin.dependencies import haystack_imports as haystack
-    from ronin.dependencies import langchain_imports as langchain
+    from ronin.dependencies import _haystack as haystack
+    from ronin.dependencies import _langchain as langchain
     # import polars
 else:
     # polars, _PANDAS_INTEGRATION_AVAILABLE = _lazy_import("polars")
     langchain, _ = _lazy_import("ronin.dependencies.langchain_imports")
     _, _LANGCHAIN_INTEGRATION_AVAILABLE = _lazy_import("langchain")
 
-    haystack, _ = _lazy_import("ronin.dependencies.haystack_imports")
-    _, _HAYSTACK_INTEGRATION_AVAILABLE = _lazy_import("haystack")
+    # haystack, _ = _lazy_import("ronin.dependencies.haystack_imports")
+    haystack, _HAYSTACK_INTEGRATION_AVAILABLE = _lazy_import("haystack")
 
 __all__ = [
     # Lazy-loaded modules
