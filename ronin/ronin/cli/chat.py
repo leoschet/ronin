@@ -1,7 +1,6 @@
 import json
 
 import click
-from haystack.nodes import PromptNode
 from loguru import logger
 
 from ronin.assistants import AssistantRegister, ProactiveChatAssistant
@@ -27,6 +26,11 @@ from ronin.prompts.templates import SystemPromptTemplate
     help="ID of the LLM provider you want. Either `azure` or `openai`.",
 )
 @click.option(
+    "--model-name",
+    default=None,
+    help="Name of model to use. This overrides the respective env variable.",
+)
+@click.option(
     "--message",
     "-m",
     "first_message",
@@ -39,7 +43,8 @@ from ronin.prompts.templates import SystemPromptTemplate
 )
 @click.option(
     "--max-length",
-    default=100,
+    default=None,
+    type=int,
     help="Maximum length of the response.",
 )
 @click.option(
@@ -57,15 +62,19 @@ from ronin.prompts.templates import SystemPromptTemplate
 async def chat(
     assistant_id: str,
     llm_provider: str,
+    model_name: str,
     first_message: str,
     interactive: bool,
     system_message: str,
-    max_length: int,
+    max_length: int | None,
     output_path: str,
 ):
     llm: LLM = create_llm(
         LLMProvider(llm_provider),
         max_length=max_length,
+        access_kwargs={
+            "model_name_or_path": model_name,
+        },
     )
 
     logger.debug(f"Loading {assistant_id}.")
@@ -80,7 +89,7 @@ async def chat(
 
     try:
         logger.info(f"Starting {assistant_id} Assistant.")
-        assistant = Assistant(chat_node=llm, **assistant_kwargs)
+        assistant = Assistant(llm=llm, **assistant_kwargs)
     except TypeError:
         logger.exception(
             f"Could not instantiate {assistant_id} Assistant. "
