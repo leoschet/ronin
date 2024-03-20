@@ -21,8 +21,10 @@ def create_llm(
 
     ConcreteLLM: LLM | None = None
     if _LANGCHAIN_INTEGRATION_AVAILABLE:
+        logger.info("Loading LLM using LangChain.")
         ConcreteLLM = LangchainLLM
     elif _HAYSTACK_INTEGRATION_AVAILABLE:
+        logger.info("Loading LLM using Haystack.")
         ConcreteLLM = HaystackLLM
 
     if ConcreteLLM is None:

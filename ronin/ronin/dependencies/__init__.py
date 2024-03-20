@@ -156,31 +156,36 @@ def _lazy_import(module_name: str) -> tuple[ModuleType, bool]:
     )
 
 
-_PANDAS_INTEGRATION_AVAILABLE = True
 _LANGCHAIN_INTEGRATION_AVAILABLE = True
+_LANGCHAIN_OPENAI_INTEGRATION_AVAILABLE = True
 _HAYSTACK_INTEGRATION_AVAILABLE = True
 
 # Handle static type checking
 # https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING
 if TYPE_CHECKING:
-    from ronin.dependencies import _haystack as haystack
-    from ronin.dependencies import _langchain as langchain
-    # import polars
+    import langchain_openai
+
+    from . import haystack_imports as haystack
+    from . import langchain_imports as langchain
 else:
-    # polars, _PANDAS_INTEGRATION_AVAILABLE = _lazy_import("polars")
     langchain, _ = _lazy_import("ronin.dependencies.langchain_imports")
     _, _LANGCHAIN_INTEGRATION_AVAILABLE = _lazy_import("langchain")
+    langchain_openai, _LANGCHAIN_OPENAI_INTEGRATION_AVAILABLE = _lazy_import(
+        "langchain_openai"
+    )
 
-    # haystack, _ = _lazy_import("ronin.dependencies.haystack_imports")
-    haystack, _HAYSTACK_INTEGRATION_AVAILABLE = _lazy_import("haystack")
+    haystack, _ = _lazy_import("ronin.dependencies.haystack_imports")
+    _, _HAYSTACK_INTEGRATION_AVAILABLE = _lazy_import("haystack")
 
 __all__ = [
     # Lazy-loaded modules
     "polars",
     "langchain",
+    "langchain_openai",
     "haystack",
     # Flags
     "_PANDAS_INTEGRATION_AVAILABLE",
     "_LANGCHAIN_INTEGRATION_AVAILABLE",
+    "_LANGCHAIN_OPENAI_INTEGRATION_AVAILABLE",
     "_HAYSTACK_INTEGRATION_AVAILABLE",
 ]

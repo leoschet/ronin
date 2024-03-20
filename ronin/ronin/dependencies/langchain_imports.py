@@ -20,12 +20,7 @@ this module.
 
 try:
     import langchain as _
-    import langchain_community as _  # type: ignore # noqa: F811
-    import langchain_openai as _  # type: ignore # noqa: F811
-    from langchain.schema import Document
-    from langchain.schema.language_model import BaseLanguageModel
-    from langchain.chat_models import AzureChatOpenAI
-    from langchain_openai import OpenAI
+    from langchain_core.language_models.chat_models import BaseChatModel
 except ModuleNotFoundError as e:
     raise ModuleNotFoundError(
         "LangChain is not installed. To install it run `poetry install --with langchain`."
