@@ -22,7 +22,6 @@ class HaystackLLM(LLM):
         llm = haystack.PromptNode(
             haystack.PromptModel(
                 model_name_or_path=access_kwargs.get("model_name_or_path")
-                or settings.openai_model_name
                 or settings.openai_model_name,
                 api_key=access_kwargs.get("api_key") or settings.openai_api_key,
                 max_length=max_length,
